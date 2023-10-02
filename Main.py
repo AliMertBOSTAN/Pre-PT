@@ -1,10 +1,8 @@
 # Ali Mert BOSTAN
-# 2021 Gazi Üniversitesi
-# 181802016
+# This is a sports movement control program with mediapipe created by Ali Mert Bostan.
 
-from cv2 import cv2
+import cv2
 import mediapipe as mp
-import time
 import math
 from tkinter import * 
 from tkinter import ttk
@@ -14,24 +12,14 @@ import numpy as np
 import tkinter as tk
 from PIL import Image
 from PIL import ImageTk
-import imageio
-import threading
-
-
-
-        
-
-
 
 class poseDetector():
     def __init__(self, mode= False, upBody=False, smooth=True, detectionCon=0.75, trackCon=0.75):
-    
         self.mode = mode
         self.upBody = upBody
         self.smooth = smooth
         self.detectionCon = detectionCon
         self.trackCon = trackCon
-
         self.mpDraw = mp.solutions.drawing_utils
         self.mpPose = mp.solutions.pose
         self.pose = self.mpPose.Pose(self.mode, self.upBody, self.smooth, self.detectionCon, self.trackCon)
@@ -87,281 +75,236 @@ class poseDetector():
             cv2.circle(img, (x3,y3), 6,(255, 0, 0), 2)
 
             cv2.putText(img, str(int(angle)), (x2-20, y2+50),cv2.FONT_HERSHEY_PLAIN, 1, (255,0,255),2)
+
         return  angle
 
 def DosyaAc ():
-        global Dosya 
-        Dosya = filedialog.askopenfilenames(title = "Video seç")
-    
-        global Dosya_yolu
-        Dosya_yolu = Dosya
-    
-        #print('Dosya ac ın sonu')
-        
-        return Dosya
-        return Dosya_yolu
+    global Dosya 
+    Dosya = filedialog.askopenfilenames(title = "Video seç")
+    global Dosya_yolu
+    Dosya_yolu = Dosya
+
+    return Dosya
 
 def Kamera ():
-        global Dosya 
-        
-        Dosya = [0,]
-        global Dosya_yolu
-        Dosya_yolu = Dosya
-    
-        
-        #print('Kamera nın sonu')
-        
-        return Dosya
-        return Dosya_yolu
+    global Dosya 
+    Dosya = [0,]
+    global Dosya_yolu
+    Dosya_yolu = Dosya
+
+    return Dosya
         
 
 
         
 
 def bicepscurl ():
-        #image = ???
-        #x,y=image.shape
+    cap = cv2.VideoCapture( Dosya_yolu[0] )
+    detector = poseDetector()
+    count = 0
+    dir = 0
+
+    while True:
+        success, img = cap.read()
+        img = detector.findPose(img, False)
+        lmList = detector.findPosition(img, False)
+
+        angleSag = detector.findeAngle(img, 12, 14, 16)
+        angleSol = detector.findeAngle(img, 11, 13, 15)
+        per = np.interp(angleSol, (200,270),(0,100))
+        if per == 100:
+                if dir == 0:
+                    count +=0.5
+                    dir = 1
+        if per == 0:
+                if dir == 1:
+                    count +=0.5
+                    dir =0
+
+
+        angle1 = detector.findeAngle(img, 13, 11, 23)
+
+        angle2 = detector.findeAngle(img, 14, 12, 24)
+
+        cv2.rectangle(img, (0,0), (10000,90), (0,0,0), -1)
         
 
-        cap = cv2.VideoCapture( Dosya_yolu[0] )
-        detector = poseDetector()
-        count = 0
-        dir = 0
+        if angle1 > 30:
+            cv2.putText(img, "Sol kol cok ayrik", (10,40), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
 
-        while True:
-            success, img = cap.read()
-            img = detector.findPose(img, False)
-            lmList = detector.findPosition(img, False)
-            
-
-            
-            
-            angleSag = detector.findeAngle(img, 12, 14, 16)
-            angleSol = detector.findeAngle(img, 11, 13, 15)
-            per = np.interp(angleSol, (200,270),(0,100))
-            if per == 100:
-                    if dir == 0:
-                        count +=0.5
-                        dir = 1
-            if per == 0:
-                    if dir == 1:
-                        count +=0.5
-                        dir =0
-
-            #print(angleSol,per)
-
-            
-            #print(count)
-
-
-            angle1 = detector.findeAngle(img, 13, 11, 23)
-
-            angle2 = detector.findeAngle(img, 14, 12, 24)
-
-            cv2.rectangle(img, (0,0), (10000,90), (0,0,0), -1)
-            
-
-            if angle1 > 30:
-                cv2.putText(img, "Sol kol cok ayrik", (10,40), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
-
-            if angle2 < 320:
-                cv2.putText(img, "Sag kol cok ayrik", (10,70), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
-                    
-            
-            if angle1 <30:
-                if angle2 > 320:
-                    cv2.putText(img, "durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-
-
-            cv2.putText(img, f'{int(count)}',(300,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
-            cv2.imshow("image", img)
-            
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-            
-            
+        if angle2 < 320:
+            cv2.putText(img, "Sag kol cok ayrik", (10,70), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
+                
         
-        
+        if angle1 <30:
+            if angle2 > 320:
+                cv2.putText(img, "durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
 
+
+        cv2.putText(img, f'{int(count)}',(300,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
         cv2.imshow("image", img)
-            
-        cv2.destroyAllframes
-        return img
+        
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cv2.imshow("image", img)
+        
+    cv2.destroyAllframes
+    return img
 
 
 
 def squat():
-        cap = cv2.VideoCapture( Dosya_yolu[0] )
-        detector = poseDetector()
-        count = 0
-        dir = 0
+    cap = cv2.VideoCapture( Dosya_yolu[0] )
+    detector = poseDetector()
+    count = 0
+    dir = 0
 
-
+    while True:
+        success, img = cap.read()
+        img = detector.findPose(img, False)
+        lmList = detector.findPosition(img, False)
+        
         while True:
-            success, img = cap.read()
-            img = detector.findPose(img, False)
-            lmList = detector.findPosition(img, False)
+            #sol bacak
+            angleSol = detector.findeAngle(img, 23, 25, 27)
+
+            #sağ bacak
+            angleSag = detector.findeAngle(img, 24, 26, 28)
+            per = np.interp(angleSol, (195,287),(0,100))
+            #print(angle,per)
+
+            if per == 100:
+                if dir == 0:
+                    count +=0.5
+                    dir = 1
+            if per == 0:
+                if dir == 1:
+                    count +=0.5
+                    dir =0
+            #print(count)
+
+            cv2.putText(img, f'{int(count)}',(520,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
+            cv2.rectangle(img, (0,0), (10000,80), (0,0,0), -1)
+            angle1 = detector.findeAngle(img, 25, 23, 11)
+            angle2 = detector.findeAngle(img, 26, 24, 12)
             
+            if angle1 > 70:
+                if angle1 < 100:
+                    cv2.putText(img, "Durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
 
-            while True:
-                #sol bacak
-                angleSol = detector.findeAngle(img, 23, 25, 27)
+                cv2.putText(img, "Durus yanlis", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
 
-                #sağ bacak
-                angleSag = detector.findeAngle(img, 24, 26, 28)
-                per = np.interp(angleSol, (195,287),(0,100))
-                #print(angle,per)
-
-                if per == 100:
-                    if dir == 0:
-                        count +=0.5
-                        dir = 1
-                if per == 0:
-                    if dir == 1:
-                        count +=0.5
-                        dir =0
-                #print(count)
-
-                cv2.putText(img, f'{int(count)}',(520,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
-                cv2.rectangle(img, (0,0), (10000,80), (0,0,0), -1)
-                angle1 = detector.findeAngle(img, 25, 23, 11)
-                angle2 = detector.findeAngle(img, 26, 24, 12)
-                
-                if angle1 > 70:
-                    if angle1 < 100:
-                        cv2.putText(img, "Durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-
-                    cv2.putText(img, "Durus yanlis", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-
-                if angle1 <70:
-                    cv2.putText(img, "Durus yanlis", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-                
-                cv2.imshow("image", img)
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
+            if angle1 <70:
+                cv2.putText(img, "Durus yanlis", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
             
+            cv2.imshow("image", img)
 
-            
-            cv2.destroyAllframes
-            return img
-            
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        cv2.destroyAllframes
+        return img
+        
                 
            
 
             
 
 def shoulderpress ():
-        cap = cv2.VideoCapture( Dosya_yolu[0] )
-        detector = poseDetector()
-        count = 0
-        dir = 0
+    cap = cv2.VideoCapture( Dosya_yolu[0] )
+    detector = poseDetector()
+    count = 0
+    dir = 0
 
+    while True:
+        success, img = cap.read()
+        #img = cv2.resize(img, (1288, 720))
+        #img = cv2.imread("test/test.jpg")
+        img = detector.findPose(img, False)
+        lmList = detector.findPosition(img, False)
+        print(lmList)
 
-        while True:
-            success, img = cap.read()
-            #img = cv2.resize(img, (1288, 720))
-            #img = cv2.imread("test/test.jpg")
-            img = detector.findPose(img, False)
-            lmList = detector.findPosition(img, False)
-            print(lmList)
+        if True:
 
-            if True:
+            #sol kol
+            angleSol = detector.findeAngle(img, 23, 11, 13)
 
-                #sol kol
-                angleSol = detector.findeAngle(img, 23, 11, 13)
+            #sağ kol
+            angleSag = detector.findeAngle(img, 24, 12, 14)
 
-                #sağ kol
-                angleSag = detector.findeAngle(img, 24, 12, 14)
+            per = np.interp(angleSol, (230,290),(0,100))
 
-                per = np.interp(angleSol, (230,290),(0,100))
-                #print(angle,per)
+            angle1 = detector.findeAngle(img, 11, 13, 15)
+            angle2 = detector.findeAngle(img, 12, 14, 16)
 
-                
-                #print(count)
+            cv2.rectangle(img, (0,0), (10000,80), (0,0,0), -1)
 
-                
+            cv2.putText(img, f'{int(count)}',(520,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
+            if per == 100:
+                if dir == 0:
+                    count +=0.5
+                    dir = 1
+            if per == 0:
+                if dir == 1:
+                    count +=0.5
+                    dir =0
 
-                angle1 = detector.findeAngle(img, 11, 13, 15)
-                angle2 = detector.findeAngle(img, 12, 14, 16)
+            cv2.putText(img, f'{int(count)}',(50,180), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 5)
 
-                cv2.rectangle(img, (0,0), (10000,80), (0,0,0), -1)
-
-                cv2.putText(img, f'{int(count)}',(520,60), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 6)
-                if per == 100:
-                    if dir == 0:
-                        count +=0.5
-                        dir = 1
-                if per == 0:
-                    if dir == 1:
-                        count +=0.5
-                        dir =0
-
-                cv2.putText(img, f'{int(count)}',(50,180), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 5)
-
-                if angle1 > 80:
-                    cv2.putText(img, "Sol Kol cok acik ", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-                
-                if angle1 < 40:
-                    cv2.putText(img, "Sol Kol cok kapali", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-
-                if angle2 > 310:
-                    cv2.putText(img, "Sag Kol cok kapali ", (10,60), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-                
-                if angle2 < 270:
-                    cv2.putText(img, "Sag Kol cok acik", (10,60), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)    
-                
-                if angle1 <80:
-                    if angle1 >40:
-                        if angle2 < 310:
-                            if angle2 > 270:
-                                cv2.putText(img, "durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
-
+            if angle1 > 80:
+                cv2.putText(img, "Sol Kol cok acik ", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
             
+            if angle1 < 40:
+                cv2.putText(img, "Sol Kol cok kapali", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
+            if angle2 > 310:
+                cv2.putText(img, "Sag Kol cok kapali ", (10,60), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
             
-
-            cv2.imshow("image", img)
-            cv2.waitKey(1)
-            cv2.destroyAllframes
-
-            return img
+            if angle2 < 270:
+                cv2.putText(img, "Sag Kol cok acik", (10,60), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)    
             
+            if angle1 <80:
+                if angle1 >40:
+                    if angle2 < 310:
+                        if angle2 > 270:
+                            cv2.putText(img, "durus dogru", (10,20), cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 3)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        cv2.imshow("image", img)
+        cv2.waitKey(1)
+        cv2.destroyAllframes
+
+        return img
+        
 
 #diğer hareketler buraya tanımlanıcak
 
 class imgshow():
-        def __init__(self,img):
-            self.vid=img
-            self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
-            self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    def __init__(self,img):
+        self.vid=img
+        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        def getFrame(self):
-            if self.vid.isOpened():
-                isTrue, frame = self.vid.read()
-                if isTrue:
-                    return(isTrue, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    def getFrame(self):
+        if self.vid.isOpened():
+            isTrue, frame = self.vid.read()
+            if isTrue:
+                return(isTrue, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        def __del__(self):
-            if self.vid.isOpened():
-                self.vid.relese()
+    def __del__(self):
+        if self.vid.isOpened():
+            self.vid.relese()
 
 #hareketler sırasında elden edilen img frame'ini tkinter'da göstermek için tanımlamaya çalıştığın yer
 
 def main():
     LARGE_FONT= ("Verdana", 12)
-
-
     class CepteKoc(tk.Tk):
-
-        def __init__(self, img, *args, **kwargs):
-            
+        def __init__(self, *args, **kwargs):  
             tk.Tk.__init__(self, *args, **kwargs)
             container = tk.Frame(self)
 
@@ -372,24 +315,22 @@ def main():
 
             self.frames = {}
 
-            for F in (Gırıs, HareketSayfasi, Goruntu):
+            for F in (Giris, HareketSayfasi, Goruntu):
 
-                frame = F(container, self, img)
+                frame = F(container, self)
 
                 self.frames[F] = frame
 
                 frame.grid(row=0, column=0, sticky="nsew")
 
-            self.show_frame(Gırıs)
+            self.show_frame(Giris)
 
         def show_frame(self, cont):
 
             frame = self.frames[cont]
             frame.tkraise()
 
-    
-
-    class Gırıs(tk.Frame):
+    class Giris(tk.Frame):
 
         def __init__(self, parent, controller):
             tk.Frame.__init__(self,parent)
@@ -397,12 +338,8 @@ def main():
             label.pack(pady=10,padx=10)
 
             ButtonDosya = Button(self, text = "dosya yükle", fg="Black", bg="Pink", command = DosyaAc)
-            
-            
             ButtonDosya.pack()
-            
-            
-           
+
             #img_Dosya = ImageTk.PhotoImage(Image.open("galeri.gif"))
             #img_Dosya_label = Label(self, image = img_Dosya)
             #img_Dosya_label.pack(fill= "both", expand= False)
@@ -416,7 +353,6 @@ def main():
             label = tk.Label(self, text="Uyarı: Kamera her zaman tam karşınızda tüm vücudunuzu görür halde olmalı.", font=LARGE_FONT)
             label.pack(pady=10,padx=10)
 
-
     class HareketSayfasi(tk.Frame):
 
         def __init__(self, parent, controller):
@@ -424,7 +360,7 @@ def main():
             label = tk.Label(self, text="HAREKETLER", font=LARGE_FONT)
             label.pack(pady=10,padx=10)
 
-            button1 = tk.Button(self, text="Yöntem Seçmeye geri dön",command=lambda: controller.show_frame(Gırıs))
+            button1 = tk.Button(self, text="Yöntem Seçmeye geri dön",command=lambda: controller.show_frame(Giris))
             button1.pack()
 
             ButtonBiceps = Button(self, text = "BiCepsCurl",fg="black", command = bicepscurl)
@@ -443,9 +379,6 @@ def main():
             ButtonTest = Button(self, text = "test",fg="black",)
             ButtonTest.pack()
 
-    
-    
-
     class Goruntu(tk.Frame):
         def __init__(self, parent, controller,img=None):
             tk.Frame.__init__(self, parent)
@@ -460,19 +393,10 @@ def main():
             self.canvas = Canvas(self.frame, width= self.vid.width, height= self.vid.height, bg='red')
             self.canvas.pack()
             #img show'dan aldığı görüntüyü ekrana yazdırmaya çalıştığın yer
-            button1 = tk.Button(self, text="Yöntem Seçmeye geri dön",command=lambda: controller.show_frame(Gırıs))
+            button1 = tk.Button(self, text="Yöntem Seçmeye geri dön",command=lambda: controller.show_frame(Giris))
             button1.pack()
             button2 = tk.Button(self, text="Hareket Seçmeye geri dön",command=lambda: controller.show_frame(HareketSayfasi))
             button2.pack()
-            
-            
-
-        
-
-            
-
-        
-
 
     app = CepteKoc()
     app.mainloop()
